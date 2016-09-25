@@ -10,12 +10,13 @@ namespace FlappyBirdMonoGame.Entity
         public float Y { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
+        public bool ShouldDraw { get; set; }
 
-        protected Texture2D texture;
         public Rectangle destRect;
-
-        private int animIndex;
         private Rectangle sourceRect;
+
+        private Texture2D texture;
+        private int animIndex;
         private bool flapping;
         private int spriteSize;
         private float velocity;
@@ -29,8 +30,11 @@ namespace FlappyBirdMonoGame.Entity
         private float rotation;
         private Vector2 origin;
 
-        public Bird(Texture2D texture, float x, float y, int width, int height)
+        private Game1 game;
+
+        public Bird(Game1 game, Texture2D texture, float x, float y, int width, int height)
         {
+            this.game = game;
             X = x;
             Y = y;
             Width = width;
@@ -55,7 +59,7 @@ namespace FlappyBirdMonoGame.Entity
                 return;
             }
 
-            if (!gameOver)
+            if (game.Status == GameStatus.Play)
             {
                 // Control is only available when game is not over
                 if (Keyboard.GetState().IsKeyDown(Keys.Space) && !flapping)
@@ -95,7 +99,10 @@ namespace FlappyBirdMonoGame.Entity
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(texture, destinationRectangle: destRect, sourceRectangle: sourceRect, color: Color.White, rotation: rotation, origin: origin);
+            if (ShouldDraw)
+            {
+                spriteBatch.Draw(texture, destinationRectangle: destRect, sourceRectangle: sourceRect, color: Color.White, rotation: rotation, origin: origin);
+            }
         }
 
         private void Flap()
@@ -123,6 +130,13 @@ namespace FlappyBirdMonoGame.Entity
         public void SetGameOver(bool gameOver)
         {
             this.gameOver = gameOver;
+        }
+
+        public void Reset(float yPos)
+        {
+            Y = yPos;
+            rotation = 0;
+            gameOver = false;
         }
     }
 }

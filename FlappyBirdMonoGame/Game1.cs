@@ -1,4 +1,5 @@
 ﻿using FlappyBirdMonoGame.Entity;
+using FlappyBirdMonoGame.GUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -6,6 +7,15 @@ using System.Collections.Generic;
 
 namespace FlappyBirdMonoGame
 {
+    public enum GameStatus
+    {
+        Instruction,
+        GetReady,
+        Play,
+        GameOver,
+        Pause,
+    }
+
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
@@ -19,17 +29,19 @@ namespace FlappyBirdMonoGame
         private Background ground;
         private Background background;
 
+        private Hud hud;
+
         private List<IEntity> entityList;
         private bool escapePressed;
-        private bool paused;
 
-        private bool gameOver;
+        public GameStatus Status { get; private set; }
 
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             entityList = new List<IEntity>();
+            hud = new Hud();
 
             graphics.PreferredBackBufferWidth = 480;
             graphics.PreferredBackBufferHeight = 640;
@@ -44,7 +56,7 @@ namespace FlappyBirdMonoGame
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-
+            Status = GameStatus.Instruction;
             base.Initialize();
         }
 
@@ -75,9 +87,23 @@ namespace FlappyBirdMonoGame
             entityList.Add(ground);
 
             var birdTexture = Content.Load<Texture2D>(@"Bird1");
-            bird = new Bird(birdTexture, 120, 200, 60, 60);
+            bird = new Bird(this, birdTexture, 120, 200, 60, 60);
             entityList.Add(bird);
 
+            Texture2D[] nTextures = new Texture2D[10];
+            for (int i = 0; i < 10; i++)
+            {
+                nTextures[i] = Content.Load<Texture2D>(i.ToString());
+            }
+
+            var pauseIconTexture = Content.Load<Texture2D>(@"Pause");
+            var getReadyTexture = Content.Load<Texture2D>(@"GetReady");
+            var gameOverTexture = Content.Load<Texture2D>(@"GameOver");
+            var instructionTexture = Content.Load<Texture2D>(@"Instruction");
+
+            hud.setTextures(nTextures, pauseIconTexture, gameOverTexture, getReadyTexture, instructionTexture);
+
+            Reset();
         }
 
         /// <summary>
@@ -100,27 +126,25 @@ namespace FlappyBirdMonoGame
             if (Keyboard.GetState().IsKeyDown(Keys.Escape) && !escapePressed)
             {
                 escapePressed = true;
-                if (!paused)
+                if (Status == GameStatus.Play)
                 {
-                    paused = true;
-                    foreach (var entity in entityList)
-                    {
-                        entity.Pause();
-                    }
+                    SetPause(true);
                 }
-                else
+                else if (Status == GameStatus.Pause)
                 {
-                    paused = false;
-                    foreach (var entity in entityList)
-                    {
-                        entity.Resume();
-                    }
+                    SetPause(false);
                 }
             }
 
             if (Keyboard.GetState().IsKeyUp(Keys.Escape) && escapePressed)
             {
                 escapePressed = false;
+            }
+
+            if (Status == GameStatus.Instruction && Keyboard.GetState().IsKeyDown(Keys.Space))
+            {
+                System.Console.WriteLine("Start");
+                StartGame();
             }
 
             foreach (var entity in entityList)
@@ -134,6 +158,7 @@ namespace FlappyBirdMonoGame
                 GameOver();
             }
 
+            hud.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -151,6 +176,7 @@ namespace FlappyBirdMonoGame
             {
                 entity.Draw(spriteBatch);
             }
+            hud.Draw(spriteBatch);
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -158,12 +184,50 @@ namespace FlappyBirdMonoGame
 
         private void GameOver()
         {
-            gameOver = true;
+            Status = GameStatus.GameOver;
             bird.SetGameOver(true);
             pipe.Pause();
             ground.Pause();
             background.Pause();
 
+        }
+
+        private void StartGame()
+        {
+            Status = GameStatus.Play;
+            hud.Status = Status;
+            bird.ShouldDraw = true;
+            pipe.ShouldDraw = true;
+
+            // Game starts after get ready count down
+        }
+
+        private void SetPause(bool pause)
+        {
+            foreach (var entity in entityList)
+            {
+                if (pause)
+                {
+                    Status = GameStatus.Pause;
+                    entity.Pause();
+                }
+                else
+                {
+                    Status = GameStatus.Play;
+                    entity.Resume();
+                }
+            }
+        }
+
+        private void Reset()
+        {
+            Status = GameStatus.Instruction;
+            foreach (var entity in entityList)
+            {
+                entity.Pause();
+            }
+            bird.ShouldDraw = false;
+            pipe.ShouldDraw = false;
         }
     }
 }

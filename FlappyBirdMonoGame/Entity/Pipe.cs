@@ -12,6 +12,8 @@ namespace FlappyBirdMonoGame.Entity
         public float Speed { get; set; }
         public float Span { get; set; }
 
+        public bool ShouldDraw { get; set; }
+
         private int qty;
         private float distance;
 
@@ -80,12 +82,14 @@ namespace FlappyBirdMonoGame.Entity
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            for (int i = 0; i < qty * 2; i += 2)
+            if (ShouldDraw)
             {
-                spriteBatch.Draw(upperTexture, destRects[i], Color.White);
-                spriteBatch.Draw(lowerTexture, destRects[i + 1], Color.White);
+                for (int i = 0; i < qty * 2; i += 2)
+                {
+                    spriteBatch.Draw(upperTexture, destRects[i], Color.White);
+                    spriteBatch.Draw(lowerTexture, destRects[i + 1], Color.White);
+                }
             }
-
         }
 
         public void Pause()
