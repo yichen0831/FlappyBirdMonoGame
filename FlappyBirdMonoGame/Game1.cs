@@ -24,7 +24,7 @@ namespace FlappyBirdMonoGame
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        private Bird bird;
+        public Bird bird { get; private set; }
         private Pipe pipe;
         private Background ground;
         private Background background;
@@ -33,6 +33,8 @@ namespace FlappyBirdMonoGame
 
         private List<IEntity> entityList;
         private bool escapePressed;
+
+        private float gameRestartTimeLeft;
 
         public GameStatus Status { get; private set; }
 
@@ -72,22 +74,22 @@ namespace FlappyBirdMonoGame
             // TODO: use this.Content to load your game content here
             var backgroundTexure = Content.Load<Texture2D>(@"Background1");
             background = new Background(backgroundTexure, 0, -160, 480, 853);
-            background.Speed = 20f;
+            background.SetSpeed(20f);
             entityList.Add(background);
 
             var upperPipeTexture = Content.Load<Texture2D>(@"PipeGreen2");
             var lowerPipeTexture = Content.Load<Texture2D>(@"PipeGreen1");
             pipe = new Pipe(upperPipeTexture, lowerPipeTexture, 3, 80, 150f, -420, -200, 320, 80, 492);
-            pipe.Speed = 100f;
+            pipe.SetSpeed(100f);
             entityList.Add(pipe);
 
             var groundTexture = Content.Load<Texture2D>(@"Ground");
             ground = new Background(groundTexture, 0, 540, 480, 150);
-            ground.Speed = 100f;
+            ground.SetSpeed(100f);
             entityList.Add(ground);
 
             var birdTexture = Content.Load<Texture2D>(@"Bird1");
-            bird = new Bird(this, birdTexture, 120, 200, 60, 60);
+            bird = new Bird(this, birdTexture, 120, 240, 60, 40);
             entityList.Add(bird);
 
             Texture2D[] nTextures = new Texture2D[10];
@@ -101,7 +103,7 @@ namespace FlappyBirdMonoGame
             var gameOverTexture = Content.Load<Texture2D>(@"GameOver");
             var instructionTexture = Content.Load<Texture2D>(@"Instruction");
 
-            hud.setTextures(nTextures, pauseIconTexture, gameOverTexture, getReadyTexture, instructionTexture);
+            hud.setTextures(this, nTextures, pauseIconTexture, gameOverTexture, getReadyTexture, instructionTexture);
 
             Reset();
         }
@@ -143,7 +145,6 @@ namespace FlappyBirdMonoGame
 
             if (Status == GameStatus.Instruction && Keyboard.GetState().IsKeyDown(Keys.Space))
             {
-                System.Console.WriteLine("Start");
                 StartGame();
             }
 
@@ -156,6 +157,16 @@ namespace FlappyBirdMonoGame
             if (pipe.Intersect(bird.destRect) || ground.Intersect(bird.destRect))
             {
                 GameOver();
+            }
+
+            if (Status == GameStatus.GameOver)
+            {
+                // Count down and restart the game
+                gameRestartTimeLeft -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (gameRestartTimeLeft <= 0)
+                {
+                    Reset();
+                }
             }
 
             hud.Update(gameTime);
@@ -189,31 +200,33 @@ namespace FlappyBirdMonoGame
             pipe.Pause();
             ground.Pause();
             background.Pause();
-
+            gameRestartTimeLeft = 1f;
         }
 
         private void StartGame()
         {
             Status = GameStatus.Play;
-            hud.Status = Status;
             bird.ShouldDraw = true;
             pipe.ShouldDraw = true;
 
             // Game starts after get ready count down
+            foreach (var entity in entityList)
+            {
+                entity.Resume();
+            }
         }
 
         private void SetPause(bool pause)
         {
+            Status = pause ? GameStatus.Pause : GameStatus.Play;
             foreach (var entity in entityList)
             {
                 if (pause)
                 {
-                    Status = GameStatus.Pause;
                     entity.Pause();
                 }
                 else
                 {
-                    Status = GameStatus.Play;
                     entity.Resume();
                 }
             }
@@ -226,6 +239,8 @@ namespace FlappyBirdMonoGame
             {
                 entity.Pause();
             }
+            bird.Reset();
+            pipe.Reset();
             bird.ShouldDraw = false;
             pipe.ShouldDraw = false;
         }

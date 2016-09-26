@@ -9,8 +9,8 @@ namespace FlappyBirdMonoGame.Entity
         public float Y { get; set; }
         public float Width { get; set; }
         public float Height { get; set; }
-        public float Speed { get; set; }
 
+        private float speed;
         private Texture2D texture;
         public Rectangle[] destRects { get; private set; }
 
@@ -40,7 +40,7 @@ namespace FlappyBirdMonoGame.Entity
         {
             for (int i = 0; i < xPos.Length; i++)
             {
-                xPos[i] -= Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                xPos[i] -= speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
                 if (xPos[i] <= -Width)
                 {
@@ -62,15 +62,20 @@ namespace FlappyBirdMonoGame.Entity
             }
         }
 
+        public void SetSpeed(float speed)
+        {
+            this.speed = speed;
+            speedRec = speed;
+        }
+
         public void Pause()
         {
-            speedRec = Speed;
-            Speed = 0;
+            speed = 0;
         }
 
         public void Resume()
         {
-            Speed = speedRec;
+            speed = speedRec;
         }
 
         public bool Intersect(Rectangle rectangle)

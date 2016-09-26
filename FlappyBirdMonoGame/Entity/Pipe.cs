@@ -9,14 +9,15 @@ namespace FlappyBirdMonoGame.Entity
         public int Width { get; set; }
         public int Height { get; set; }
 
-        public float Speed { get; set; }
         public float Span { get; set; }
 
         public bool ShouldDraw { get; set; }
 
+        private float speed;
         private int qty;
         private float distance;
 
+        private int initX;
         private int minY;
         private int maxY;
 
@@ -45,6 +46,8 @@ namespace FlappyBirdMonoGame.Entity
             this.upperTexture = upperTexture;
             this.lowerTexture = lowerTexture;
 
+            this.initX = initX;
+
             xPos = new float[qty];
 
             random = new Random();
@@ -53,11 +56,14 @@ namespace FlappyBirdMonoGame.Entity
             {
                 int x = initX + (int)(Width + Span) * i;
                 int y = minY + random.Next() % (maxY - minY);
+                if (i == 0)
+                {
+                    y = (minY + maxY) / 2;
+                }
                 xPos[i / 2] = x;
                 destRects[i] = new Rectangle(x, y, Width, Height);
                 destRects[i + 1] = new Rectangle(x, y + (int)(distance + Height), Width, Height);
             }
-
         }
 
         public void Update(GameTime gameTime)
@@ -65,7 +71,7 @@ namespace FlappyBirdMonoGame.Entity
             for (int i = 0; i < qty * 2; i += 2)
             {
 
-                xPos[i / 2] -= Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                xPos[i / 2] -= speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
                 if (xPos[i / 2] <= -Width)
                 {
                     xPos[i / 2] = -Width + (Width + Span) * (qty * 2);
@@ -92,15 +98,20 @@ namespace FlappyBirdMonoGame.Entity
             }
         }
 
+        public void SetSpeed(float speed)
+        {
+            speedRec = speed;
+            this.speed = speed;
+        }
+
         public void Pause()
         {
-            speedRec = Speed;
-            Speed = 0;
+            speed = 0;
         }
 
         public void Resume()
         {
-            Speed = speedRec;
+            speed = speedRec;
         }
 
         public bool Intersect(Rectangle rectangle)
@@ -113,6 +124,22 @@ namespace FlappyBirdMonoGame.Entity
                 }
             }
             return false;
+        }
+
+        public void Reset()
+        {
+            for (int i = 0; i < qty * 2; i += 2)
+            {
+                int x = initX + (int)(Width + Span) * i;
+                int y = minY + random.Next() % (maxY - minY);
+                if (i == 0)
+                {
+                    y = (minY + maxY) / 2;
+                }
+                xPos[i / 2] = x;
+                destRects[i] = new Rectangle(x, y, Width, Height);
+                destRects[i + 1] = new Rectangle(x, y + (int)(distance + Height), Width, Height);
+            }
         }
     }
 }

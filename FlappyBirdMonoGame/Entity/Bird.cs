@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace FlappyBirdMonoGame.Entity
 {
-    class Bird : IEntity
+    public class Bird : IEntity
     {
         public float X { get; set; }
         public float Y { get; set; }
@@ -18,13 +18,15 @@ namespace FlappyBirdMonoGame.Entity
         private Texture2D texture;
         private int animIndex;
         private bool flapping;
-        private int spriteSize;
+        private int spriteWidth;
+        private int spriteHeight;
         private float velocity;
         private readonly float gravity = 320f;
 
         public float animInterval { get; set; }
         private float animTimeLeft;
 
+        private float initY;
         private bool paused;
         private bool gameOver;
         private float rotation;
@@ -35,6 +37,7 @@ namespace FlappyBirdMonoGame.Entity
         public Bird(Game1 game, Texture2D texture, float x, float y, int width, int height)
         {
             this.game = game;
+            initY = y;
             X = x;
             Y = y;
             Width = width;
@@ -44,11 +47,12 @@ namespace FlappyBirdMonoGame.Entity
             destRect = new Rectangle((int)X, (int)Y, Width, Height);
 
             animIndex = 1;
-            spriteSize = 20;
+            spriteWidth = 18;
+            spriteHeight = 12;
 
             velocity = 120f;
             animInterval = 0.06f;
-            sourceRect = new Rectangle(0, 0, spriteSize, spriteSize);
+            sourceRect = new Rectangle(1, 4, spriteWidth, spriteHeight);
             origin = new Vector2(0.5f, 0.5f);
         }
 
@@ -89,7 +93,7 @@ namespace FlappyBirdMonoGame.Entity
                 }
             }
 
-            sourceRect.X = animIndex * spriteSize;
+            sourceRect.X = animIndex * (2 + spriteWidth) + 1;
 
             velocity += (float)gameTime.ElapsedGameTime.TotalSeconds * gravity;
             Y += velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -132,10 +136,12 @@ namespace FlappyBirdMonoGame.Entity
             this.gameOver = gameOver;
         }
 
-        public void Reset(float yPos)
+        public void Reset()
         {
-            Y = yPos;
+            Y = initY;
             rotation = 0;
+            velocity = 120f;
+
             gameOver = false;
         }
     }
