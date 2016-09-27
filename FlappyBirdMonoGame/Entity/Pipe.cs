@@ -13,6 +13,8 @@ namespace FlappyBirdMonoGame.Entity
 
         public bool ShouldDraw { get; set; }
 
+        public event Action AddScore;
+
         private float speed;
         private int qty;
         private float distance;
@@ -25,6 +27,7 @@ namespace FlappyBirdMonoGame.Entity
         private Texture2D lowerTexture;
 
         private float[] xPos;
+        private bool[] pipeScored;
         public Rectangle[] destRects { get; private set; }
 
         private Random random;
@@ -49,6 +52,7 @@ namespace FlappyBirdMonoGame.Entity
             this.initX = initX;
 
             xPos = new float[qty];
+            pipeScored = new bool[qty];
 
             random = new Random();
             destRects = new Rectangle[qty * 2];
@@ -72,8 +76,15 @@ namespace FlappyBirdMonoGame.Entity
             {
 
                 xPos[i / 2] -= speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (xPos[i / 2] < 120 && pipeScored[i / 2] == false)
+                {
+                    pipeScored[i / 2] = true;
+                    AddScore?.Invoke();
+                }
+
                 if (xPos[i / 2] <= -Width)
                 {
+                    pipeScored[i / 2] = false;
                     xPos[i / 2] = -Width + (Width + Span) * (qty * 2);
                     int y = minY + random.Next() % (maxY - minY);
                     destRects[i].Y = y;
@@ -137,6 +148,7 @@ namespace FlappyBirdMonoGame.Entity
                     y = (minY + maxY) / 2;
                 }
                 xPos[i / 2] = x;
+                pipeScored[i / 2] = false;
                 destRects[i] = new Rectangle(x, y, Width, Height);
                 destRects[i + 1] = new Rectangle(x, y + (int)(distance + Height), Width, Height);
             }

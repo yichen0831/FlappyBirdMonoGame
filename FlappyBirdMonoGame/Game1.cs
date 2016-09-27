@@ -104,7 +104,7 @@ namespace FlappyBirdMonoGame
             var instructionTexture = Content.Load<Texture2D>(@"Instruction");
 
             hud.setTextures(this, nTextures, pauseIconTexture, gameOverTexture, getReadyTexture, instructionTexture);
-
+            pipe.AddScore += hud.AddScore;
             Reset();
         }
 
@@ -167,6 +167,10 @@ namespace FlappyBirdMonoGame
                 {
                     Reset();
                 }
+            }
+            else if (Status == GameStatus.Play)
+            {
+
             }
 
             hud.Update(gameTime);
@@ -243,6 +247,8 @@ namespace FlappyBirdMonoGame
             pipe.Reset();
             bird.ShouldDraw = false;
             pipe.ShouldDraw = false;
+
+            hud.ResetScore();
         }
     }
 }
